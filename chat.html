@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini AI Chat</title>
+    <style>
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+
+        #chatBox {
+            width: 80%;
+            border: 2px solid #00ffea;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            background-color: #222;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 234, 0.5);
+        }
+
+        #inputBox {
+            display: flex;
+            align-items: center;
+        }
+
+        #promptInput {
+            flex: 1;
+            margin-right: 10px;
+            padding: 10px;
+            border: 2px solid #00ffea;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+
+        #generateButton {
+            display: none;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #00ffea;
+            color: #111;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #generateButton:hover {
+            background-color: #00ffd4;
+        }
+
+        /* Adjust chat box size for larger screens */
+        @media screen and (min-width: 768px) {
+            #chatBox {
+                width: 60%;
+                min-height: 300px;
+            }
+        }
+
+        @media screen and (min-width: 1024px) {
+            #chatBox {
+                width: 40%;
+                min-height: 400px;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            #chatBox {
+                width: 30%;
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="chatBox"></div>
+        <div id="inputBox">
+            <input type="text" id="promptInput" placeholder="Enter your prompt">
+            <button id="generateButton">Generate</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        async function typeEffect(text, outputDiv) {
+            // Append the escaped HTML text directly to the chat box
+            outputDiv.innerHTML += text;
+        }
+
+        async function generateContent() {
+            const promptInput = document.getElementById("promptInput");
+            const prompt = promptInput.value.trim();
+
+            if (!prompt) {
+                alert("Please enter a prompt.");
+                return;
+            }
+
+            // Hide the generate button during generation
+            const generateButton = document.getElementById("generateButton");
+            generateButton.style.display = "none";
+
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML += "<p><strong>User:</strong> " + prompt + "</p>";
+
+            const genAI = new GoogleGenerativeAI("AIzaSyBTmfNz1k9wvcFD5ZAiahPBcJPQ6KWAU_o");
+            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = await response.text();
+            console.log(text);
+            
+            // Replace ** with <strong> and * with <li>
+            const formattedText = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\*(.*?)\*/g, "<li>$1</li>");
+
+            // Display the generated content
+            await typeEffect(formattedText, chatBox);
+
+            // Show the generate button after generation is complete
+            generateButton.style.display = "block";
+        }
+
+        const promptInput = document.getElementById("promptInput");
+        promptInput.addEventListener("input", function() {
+            const generateButton = document.getElementById("generateButton");
+            if (this.value.trim() !== "") {
+                generateButton.style.display = "block";
+            } else {
+                generateButton.style.display = "none";
+            }
+        });
+
+        document.getElementById("generateButton").addEventListener("click", generateContent);
+    </script>
+</body>
+</html>
